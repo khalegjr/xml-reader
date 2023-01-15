@@ -2,7 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Infra\CheckXML;
+use DOMDocument;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Redirect;
 
 class FileController extends Controller
 {
@@ -11,21 +14,35 @@ class FileController extends Controller
             'file_input' => 'mimes:xml|required'
         ]);
 
-        // $meuXml = simplexml_load_string($request->file_input);
         $file = file_get_contents($request->file('file_input')->getRealPath());
 
-        libxml_use_internal_errors(true);
+        $validated = CheckXML::check($file);
 
-
-        if(!(simplexml_load_string($file))){
-            $erros = libxml_get_errors();
-
-            foreach ($erros as $erro) {
-                echo $erro->message, PHP_EOL;
-            }
-            exit;
-        } else {
-            echo "DEU BÃO";
+        if(sizeof($validated) !== 0){
+            return Redirect::to('/')->withErrors(['xml_check' => 'XML file invalid!']);
         }
+
+        $doc = new DOMDocument();
+        $doc->loadXML($file);
+
+        $names = array();
+        $paths = array();
+        $nodes = array();
+
+        foreach ($doc->getElementsByTagName('*') as $node) {
+
+            if ($node->childElementCount === 0) {
+                $names[] = $node->nodeName;
+                $paths[] = $node->parentNode->nodeName;
+
+                $nodes[] = [
+                    'tag' => $node->nodeName,
+                    'path' => $node->parentNode->nodeName,
+                    'value' => $node->nodeValue,
+                ];
+            }
+        }
+
+        return view('index', compact('nodes'));
     }
 }
