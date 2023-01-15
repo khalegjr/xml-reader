@@ -15,8 +15,8 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', function () {
-    return view('welcome');
-});
+    return view('index');
+})->name('xml.upload');
 
-Route::post('/upload', [FileController::class, 'upload'])
+Route::post('/', [FileController::class, 'upload'])
     ->name('file.upload');
