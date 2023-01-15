@@ -9,7 +9,8 @@ use Illuminate\Support\Facades\Redirect;
 
 class FileController extends Controller
 {
-    public function upload(Request $request) {
+    public function upload(Request $request)
+    {
        $request->validate([
             'file_input' => 'mimes:xml|required'
         ]);
@@ -18,7 +19,7 @@ class FileController extends Controller
 
         $validated = CheckXML::check($file);
 
-        if(sizeof($validated) !== 0){
+        if (sizeof($validated) !== 0) {
             return Redirect::to('/')->withErrors(['xml_check' => 'XML file invalid!']);
         }
 
@@ -26,23 +27,37 @@ class FileController extends Controller
         $doc->loadXML($file);
 
         $names = array();
-        $paths = array();
         $nodes = array();
 
         foreach ($doc->getElementsByTagName('*') as $node) {
 
             if ($node->childElementCount === 0) {
                 $names[] = $node->nodeName;
-                $paths[] = $node->parentNode->nodeName;
-
                 $nodes[] = [
                     'tag' => $node->nodeName,
-                    'path' => $node->parentNode->nodeName,
+                    'path' => $this->generatePath($node),
                     'value' => $node->nodeValue,
                 ];
             }
         }
 
         return view('index', compact('nodes'));
+    }
+
+    public function generatePath($node): String
+    {
+        $paths = array();
+
+        while ($node->nodeType === XML_ELEMENT_NODE) {
+            $paths[] = $node->parentNode->nodeName;
+
+            $node = $node->parentNode;
+        }
+
+        array_pop($paths);
+        $reversed = array_reverse($paths);
+        $path_completed = join('/', $reversed);
+
+        return $path_completed;
     }
 }
