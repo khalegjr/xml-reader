@@ -24,7 +24,7 @@
         <main class="w-full">
             <div class="mb-6">
                 <form action="{{ route('file.upload') }}" method="post" enctype="multipart/form-data"
-                    class="flex items-center space-x-6">
+                    class="flex items-center space-x-6" wire:submit.prevent='submit'>
                     @csrf
                     @method('post')
 
@@ -39,10 +39,11 @@
                     </div>
 
                     @error('file_input')
-                        <div class="alert alert-danger">{{ $message }}</div>
+                        <div class="mb-4 rounded-lg bg-red-100 p-4 text-sm text-red-700 dark:bg-gray-800 dark:text-red-400"
+                            role="alert"">{{ $message }}</div>
                     @enderror
 
-                    <button type="submit" onclick="event.preventDefault(); this.closest('form').submit();"
+                    <button type="submit"
                         class="mr-2 mb-2 rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Enviar
                         Arquivo</button>
                 </form>
@@ -51,12 +52,14 @@
 
         <section class="w-full">
             @if ($errors->has('xml_check'))
-                <div>{{ $errors->first('xml_check') }}</div>
+                <div class="mb-4 rounded-lg bg-red-100 p-4 text-sm text-red-700 dark:bg-gray-800 dark:text-red-400"
+                    role="alert">
+                    <span class="font-medium">{{ $errors->first('xml_check') }}</ </div>
             @endif
 
             @isset($nodes)
                 <div class="mb-6 w-1/4">
-                    <form id="form_search" action="{{ route('file.search') }}" method="post"
+                    <form id="form_search" action="{{ route('file.search') }}" method="post" wire:submit.prevent='submit'
                         class="flex items-center space-x-6">
                         @csrf
                         @method('post')
@@ -74,7 +77,7 @@
                             <input type="search" name="search" id="default-search"
                                 class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-4 pl-10 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 dark:focus:border-blue-500 dark:focus:ring-blue-500"
                                 placeholder="Pesquisar">
-                            <button type="submit" onclick="event.preventDefault(); this.closest('form').submit();"
+                            <button type="submit"
                                 class="absolute right-2.5 bottom-2.5 rounded-lg bg-blue-700 px-4 py-2 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Search</button>
                         </div>
                     </form>
@@ -114,12 +117,10 @@
     </div>
 
     <script>
-        document.getElementById('default-search')
-            .addEventListener('input', search);
+        if (document.body.contains(document.getElementById('default-search'))) {
 
-        function search() {
-
-            console.log('olá');
+            document.getElementById('default-search')
+                .addEventListener('input', document.getElementById('form_search').submit.prevent);
         }
     </script>
 </body>
