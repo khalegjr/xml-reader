@@ -31,7 +31,7 @@ class FileController extends Controller
 
         foreach ($doc->getElementsByTagName('*') as $node) {
 
-            if ($node->childElementCount === 0) {
+            if ($node->childElementCount === 0 and $node->nodeValue !== "") {
                 $names[] = $node->nodeName;
                 $nodes[] = [
                     'tag' => $node->nodeName,
