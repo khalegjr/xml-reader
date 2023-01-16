@@ -2,7 +2,7 @@
 
 namespace App\Infra;
 
-class CheckXML
+class UtilsXML
 {
     static function check($file): Array {
         libxml_use_internal_errors(true);

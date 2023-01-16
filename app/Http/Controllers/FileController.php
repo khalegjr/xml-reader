@@ -2,14 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use App\Infra\CheckXML;
+use App\Infra\GenerateXMLStructure;
+use App\Infra\UtilsXML;
 use DOMDocument;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
 
 class FileController extends Controller
 {
-    private $nodes = array();
+    private GenerateXMLStructure $nodes;
+
 
     public function upload(Request $request)
     {
@@ -21,56 +23,25 @@ class FileController extends Controller
 
         $file = file_get_contents($request->file('file_input')->getRealPath());
 
-        $validated = CheckXML::check($file);
+        $validated = UtilsXML::check($file);
 
         if (sizeof($validated) !== 0) {
             return Redirect::to('/')->withErrors(['xml_check' => 'XML file invalid!']);
         }
 
-        $doc = new DOMDocument();
-        $doc->loadXML($file);
+        $this->nodes = new GenerateXMLStructure($file);
 
-        foreach ($doc->getElementsByTagName('*') as $node) {
-
-            if ($node->childElementCount === 0 and $node->nodeValue !== "") {
-                $names[] = $node->nodeName;
-                $this->nodes[] = [
-                    'tag' => $node->nodeName,
-                    'path' => $this->generatePath($node),
-                    'value' => $node->nodeValue,
-                ];
-            }
-        }
-
-        session()->put('nodes', $this->nodes);
-
-        return view('index', ['nodes' => $this->nodes]);
-    }
-
-    public function generatePath($node): String
-    {
-        $paths = array();
-
-        while ($node->nodeType === XML_ELEMENT_NODE) {
-            $paths[] = $node->parentNode->nodeName;
-
-            $node = $node->parentNode;
-        }
-
-        array_pop($paths);
-        $reversed = array_reverse($paths);
-        $path_completed = join('/', $reversed);
-
-        return $path_completed;
+        return view('index', ['nodes' => session()->get('nodes')]);
     }
 
     public function search(Request $request)
     {
+        $nodes_filter = [];
         if ($request->has('search')) {
-            $this->nodes = $this->filter($request->search);
+            $nodes_filter = $this->filter($request->search);
         }
 
-        return view('index', ['nodes' => $this->nodes]);
+        return view('index', ['nodes' => $nodes_filter]);
     }
 
     public function filter($filter)
