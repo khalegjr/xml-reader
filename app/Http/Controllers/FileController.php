@@ -9,8 +9,12 @@ use Illuminate\Support\Facades\Redirect;
 
 class FileController extends Controller
 {
+    private $nodes = array();
+
     public function upload(Request $request)
     {
+        unset($this->nodes);
+
        $request->validate([
             'file_input' => 'mimes:xml|required'
         ]);
@@ -26,14 +30,11 @@ class FileController extends Controller
         $doc = new DOMDocument();
         $doc->loadXML($file);
 
-        $names = array();
-        $nodes = array();
-
         foreach ($doc->getElementsByTagName('*') as $node) {
 
             if ($node->childElementCount === 0 and $node->nodeValue !== "") {
                 $names[] = $node->nodeName;
-                $nodes[] = [
+                $this->nodes[] = [
                     'tag' => $node->nodeName,
                     'path' => $this->generatePath($node),
                     'value' => $node->nodeValue,
@@ -41,7 +42,9 @@ class FileController extends Controller
             }
         }
 
-        return view('index', compact('nodes'));
+        session()->put('nodes', $this->nodes);
+
+        return view('index', ['nodes' => $this->nodes]);
     }
 
     public function generatePath($node): String
@@ -59,5 +62,40 @@ class FileController extends Controller
         $path_completed = join('/', $reversed);
 
         return $path_completed;
+    }
+
+    public function search(Request $request)
+    {
+        if ($request->has('search')) {
+            $this->nodes = $this->filter($request->search);
+        }
+
+        return view('index', ['nodes' => $this->nodes]);
+    }
+
+    public function filter($filter)
+    {
+        $temp = array();
+
+        foreach (session()->get('nodes') as $node) {
+
+            if (str_contains(
+                   strtolower($node['tag']),
+                    strtolower($filter)
+                ) ||
+                str_contains(
+                   strtolower($node['path']),
+                    strtolower($filter)
+                ) ||
+                str_contains(
+                   strtolower($node['value']),
+                    strtolower($filter)
+                )
+            ) {
+                $temp[] = $node;
+            }
+        }
+
+        return $temp;
     }
 }

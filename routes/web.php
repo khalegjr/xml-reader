@@ -20,3 +20,5 @@ Route::get('/', function () {
 
 Route::post('/', [FileController::class, 'upload'])
     ->name('file.upload');
+
+Route::post('/search', [FileController::class, 'search'])->name('file.search');
