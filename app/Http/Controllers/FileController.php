@@ -18,7 +18,7 @@ class FileController extends Controller
         unset($this->nodes);
 
        $request->validate([
-            'file_input' => 'mimes:xml|required'
+            'file_input' => 'mimes:xml|required|max:2048'
         ]);
 
         $file = file_get_contents($request->file('file_input')->getRealPath());
@@ -26,7 +26,7 @@ class FileController extends Controller
         $validated = UtilsXML::check($file);
 
         if (sizeof($validated) !== 0) {
-            return Redirect::to('/')->withErrors(['xml_check' => 'XML file invalid!']);
+            return Redirect::to('/')->withErrors(['xml_check' => 'Arquivo XML inválido!']);
         }
 
         $this->nodes = new GenerateXMLStructure($file);
