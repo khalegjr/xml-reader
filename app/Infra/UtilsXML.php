@@ -12,4 +12,29 @@ class UtilsXML
         return $errors;
     }
 
+    static function filter($filter): array
+    {
+        $temp = array();
+
+        foreach (session()->get('nodes') as $node) {
+
+            if (str_contains(
+                   strtolower($node['tag']),
+                    strtolower($filter)
+                ) ||
+                str_contains(
+                   strtolower($node['path']),
+                    strtolower($filter)
+                ) ||
+                str_contains(
+                   strtolower($node['value']),
+                    strtolower($filter)
+                )
+            ) {
+                $temp[] = $node;
+            }
+        }
+
+        return $temp;
+    }
 }

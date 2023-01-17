@@ -54,5 +54,4 @@ class GenerateXMLStructure
     // {
     //     return session()->get('nodes');
     // }
-
 }

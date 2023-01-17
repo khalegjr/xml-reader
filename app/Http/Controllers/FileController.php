@@ -38,35 +38,9 @@ class FileController extends Controller
     {
         $nodes_filter = [];
         if ($request->has('search')) {
-            $nodes_filter = $this->filter($request->search);
+            $nodes_filter = UtilsXML::filter($request->search);
         }
 
         return view('index', ['nodes' => $nodes_filter]);
-    }
-
-    public function filter($filter)
-    {
-        $temp = array();
-
-        foreach (session()->get('nodes') as $node) {
-
-            if (str_contains(
-                   strtolower($node['tag']),
-                    strtolower($filter)
-                ) ||
-                str_contains(
-                   strtolower($node['path']),
-                    strtolower($filter)
-                ) ||
-                str_contains(
-                   strtolower($node['value']),
-                    strtolower($filter)
-                )
-            ) {
-                $temp[] = $node;
-            }
-        }
-
-        return $temp;
     }
 }
